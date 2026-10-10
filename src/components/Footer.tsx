@@ -60,11 +60,18 @@ export const Footer: React.FC<FooterProps> = ({ onOpenResume }) => {
           </div>
         </div>
 
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-600 text-[11px]">
-          <div>
-            Built with modern React, Tailwind CSS & LangGraph architectural design patterns.
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-500 text-[11px]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>Tech Stack:</span>
+            <span className="text-emerald-400">Next.js Architecture</span>
+            <span className="text-zinc-700">·</span>
+            <span className="text-cyan-400">Zod Schema Validation</span>
+            <span className="text-zinc-700">·</span>
+            <span className="text-zinc-300">Tailwind CSS</span>
+            <span className="text-zinc-700">·</span>
+            <span className="text-zinc-400">Seamless Vercel Deployment</span>
           </div>
-          <div>
+          <div className="text-zinc-600">
             © {new Date().getFullYear()} Mohammed Abdul Khaleel. All rights reserved.
           </div>
         </div>

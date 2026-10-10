@@ -1,23 +1,15 @@
-export interface Project {
-  id: string;
-  title: string;
-  subtitle: string;
-  category: 'Multi-Agent' | 'RAG & Knowledge Graphs' | 'NL-to-Query & DB';
-  technologies: string[];
-  githubUrl?: string;
-  summary: string;
-  highlights: string[];
-  architectureOverview: string;
-  pipelineSteps?: { step: string; title: string; description: string; detail: string }[];
-}
+import { 
+  PortfolioDataSchema, 
+  PortfolioData, 
+  Project, 
+  SkillCategory, 
+  EducationItem,
+  PipelineStep
+} from '../schemas/portfolioSchema';
 
-export interface SkillCategory {
-  name: string;
-  slug: string;
-  skills: string[];
-}
+export type { Project, SkillCategory, EducationItem, PipelineStep, PortfolioData };
 
-export const PORTFOLIO_DATA = {
+const rawPortfolioData = {
   personal: {
     name: 'MOHAMMED ABDUL KHALEEL',
     role: 'AI Engineer',
@@ -330,3 +322,6 @@ export const PORTFOLIO_DATA = {
     }
   ]
 };
+
+// Strict runtime validation using Zod
+export const PORTFOLIO_DATA: PortfolioData = PortfolioDataSchema.parse(rawPortfolioData);

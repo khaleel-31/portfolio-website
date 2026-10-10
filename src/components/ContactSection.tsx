@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PORTFOLIO_DATA } from '../data/portfolioData';
-import { Mail, Phone, Github, MapPin, Send, Check, Copy, Sparkles, MessageSquare } from 'lucide-react';
+import { ContactInquirySchema } from '../schemas/portfolioSchema';
+import { Mail, Phone, Github, MapPin, Send, Check, Copy, Sparkles, MessageSquare, AlertCircle } from 'lucide-react';
 
 export const ContactSection: React.FC = () => {
   const [copiedEmail, setCopiedEmail] = useState(false);
@@ -10,6 +11,7 @@ export const ContactSection: React.FC = () => {
   const [senderName, setSenderName] = useState('');
   const [senderOrg, setSenderOrg] = useState('');
   const [customNote, setCustomNote] = useState('');
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [sentMessage, setSentMessage] = useState(false);
 
   const handleCopyEmail = () => {
@@ -26,11 +28,33 @@ export const ContactSection: React.FC = () => {
 
   const handleSendDraft = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate with Zod schema
+    const validationResult = ContactInquirySchema.safeParse({
+      inquiryType,
+      senderName,
+      senderOrg: senderOrg || undefined,
+      customNote,
+    });
+
+    if (!validationResult.success) {
+      const fieldErrors: Record<string, string> = {};
+      validationResult.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0].toString()] = issue.message;
+        }
+      });
+      setFormErrors(fieldErrors);
+      return;
+    }
+
+    setFormErrors({});
+
     const subject = encodeURIComponent(
       `[AI Engineer Opportunity] ${senderOrg ? `${senderOrg} - ` : ''}Inquiry for Mohammed Abdul Khaleel`
     );
     const body = encodeURIComponent(
-      `Hi Khaleel,\n\nI reviewed your portfolio and engineering work on LangGraph, RAG pipelines, and conversational data platforms.\n\nInquiry Type: ${inquiryType}\nFrom: ${senderName || 'Hiring Team'} ${senderOrg ? `(${senderOrg})` : ''}\n\nNote:\n${customNote || 'We would like to connect with you regarding an AI Engineer opportunity.'}\n\nBest regards,\n${senderName || 'Hiring Manager'}`
+      `Hi Khaleel,\n\nI reviewed your portfolio and engineering work on LangGraph, RAG pipelines, and conversational data platforms.\n\nInquiry Type: ${inquiryType}\nFrom: ${senderName} ${senderOrg ? `(${senderOrg})` : ''}\n\nNote:\n${customNote}\n\nBest regards,\n${senderName}`
     );
 
     window.location.href = `mailto:${PORTFOLIO_DATA.personal.email}?subject=${subject}&body=${body}`;
@@ -200,21 +224,34 @@ export const ContactSection: React.FC = () => {
                 {/* Name & Organization */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-zinc-400 mb-1.5 uppercase tracking-wider text-[11px]">
-                      Your Name / Role
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-zinc-400 uppercase tracking-wider text-[11px]">
+                        Your Name / Role *
+                      </label>
+                      {formErrors.senderName && (
+                        <span className="text-red-400 text-[10px] flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {formErrors.senderName}
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
+                      onChange={(e) => {
+                        setSenderName(e.target.value);
+                        if (formErrors.senderName) setFormErrors(prev => ({ ...prev, senderName: '' }));
+                      }}
                       placeholder="e.g. Sarah Jenkins (Tech Lead)"
-                      className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                      className={`w-full px-3.5 py-2.5 bg-zinc-950 border rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none transition-colors ${
+                        formErrors.senderName ? 'border-red-500' : 'border-zinc-800 focus:border-emerald-500'
+                      }`}
                     />
                   </div>
 
                   <div>
                     <label className="block text-zinc-400 mb-1.5 uppercase tracking-wider text-[11px]">
-                      Company / Organization
+                      Company / Organization (Optional)
                     </label>
                     <input
                       type="text"
@@ -228,15 +265,28 @@ export const ContactSection: React.FC = () => {
 
                 {/* Message notes */}
                 <div>
-                  <label className="block text-zinc-400 mb-1.5 uppercase tracking-wider text-[11px]">
-                    Message / Opportunity Scope
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-zinc-400 uppercase tracking-wider text-[11px]">
+                      Message / Opportunity Scope *
+                    </label>
+                    {formErrors.customNote && (
+                      <span className="text-red-400 text-[10px] flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {formErrors.customNote}
+                      </span>
+                    )}
+                  </div>
                   <textarea
                     rows={4}
                     value={customNote}
-                    onChange={(e) => setCustomNote(e.target.value)}
-                    placeholder="Provide a quick note on the role, team stack, or project requirements..."
-                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none leading-relaxed"
+                    onChange={(e) => {
+                      setCustomNote(e.target.value);
+                      if (formErrors.customNote) setFormErrors(prev => ({ ...prev, customNote: '' }));
+                    }}
+                    placeholder="Provide a quick note on the role, team stack, or project requirements (min 10 characters)..."
+                    className={`w-full px-3.5 py-2.5 bg-zinc-950 border rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none transition-colors resize-none leading-relaxed ${
+                      formErrors.customNote ? 'border-red-500' : 'border-zinc-800 focus:border-emerald-500'
+                    }`}
                   />
                 </div>
 
